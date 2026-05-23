@@ -6,50 +6,21 @@
 
 这个项目把资料分成两类：
 
-- **公开收纳（主资料库）**：你可在对话中给出一个公开网址，也可使用站点中的“创建收纳请求（Issue）”入口。Issue 是 GitHub Actions 的安全触发凭证；工作流会调用 AI 补充标题、摘要、来源、分类和标签，再创建待审核的 Pull Request。合并后写入 `data/library.json`，换浏览器或设备仍可浏览。
+- **公开收纳（主资料库）**：适合长期公开保存的内容写入 `data/library.json`，站点从这个文件加载，因此换浏览器或设备仍可浏览。你可以将公开网址和需要的说明发给我，由我协助整理后提交到仓库。
 - **本地暂存（仅草稿）**：网页左侧表单只适合临时记录。内容保存在当前浏览器 `localStorage` 中，换浏览器、换设备或清理站点数据后不会存在；可使用“导出备份”和“导入”迁移草稿。
 
 适合提交给公开收纳的资料包括文章、工具官网、教程、公开演讲视频、开源项目和公开报告。需要登录的页面、私人网盘分享、带访问凭据的网址、账户恢复链接或包含个人隐私的资料，不应进入公开仓库。
 
 目录视图支持选择每行 `2` 至 `5` 列及每页 `12`、`24` 或 `48` 条。卡片默认只显示识别所需的标题与分类，悬停或键盘聚焦后可查看摘要、状态、来源和维护操作。
 
-## 智能整理配置
+## 手动分类与标签
 
-智能整理默认使用 NVIDIA API Catalog 托管的 NIM 接口，通过 GitHub Actions 运行。NVIDIA Developer Program 为原型开发提供免费的 hosted NIM API 访问，实际可用模型和使用限制以 NVIDIA 当前服务规则为准。API Key 不会出现在静态网页中，也不应写入代码或 JSON 数据。
+录入表单提供了一组可直接点击的推荐分类与常用标签，也保留自由输入能力。
 
-首次发布仓库后进行一次配置：
+- 推荐分类：`技术与工具`、`学习与研究`、`产品与设计`、`写作与创作`、`商业与趋势`、`效率与方法`、`生活与兴趣`、`影音娱乐`、`待整理`。
+- 常用标签：`开源项目`、`教程`、`工具`、`灵感`、`AI`、`前端`、`设计`、`写作`、`效率`、`稍后阅读`、`重点回看`、`可复用`。
 
-1. 在 NVIDIA API Catalog 中打开一个适合中文总结的文本模型页面，点击获取 NVIDIA Developer API Key。
-2. 打开 GitHub 仓库 `Settings` > `Secrets and variables` > `Actions` > `Secrets`，创建 Repository secret：`NVIDIA_API_KEY`。
-3. 可选：在同一页面的 `Variables` 中创建 `AI_MODEL`，填写 API Catalog 当前可用的模型 ID；未设置时工作流使用 `meta/llama-3.1-8b-instruct`。
-4. 在 `Settings` > `Actions` > `General` 中确认工作流具备读写权限，并允许 GitHub Actions 创建 Pull Request。
-
-工作流程如下：
-
-```text
-网页点击“创建收纳请求（Issue）”
-        -> 创建 [收纳] GitHub Issue 作为安全触发
-        -> smart-organize 工作流读取公开页面
-        -> NVIDIA NIM 返回摘要、分类与标签
-        -> 工作流更新 data/library.json 并创建 Pull Request
-        -> 你审核无误后合并，网站显示新资料
-```
-
-安全约束：
-
-- 工作流只处理由仓库所有者创建、标题以 `[收纳]` 开头的 Issue，防止陌生人消耗你的 API 配额。
-- 整理脚本拒绝带账号密码的 URL、`localhost` 以及解析到私有网络地址的链接。
-- 页面内容被视为不可信文本，模型只可生成资料元数据；最终内容需经 Pull Request 审核后才进入公开目录。
-
-### 切换到 OpenAI（可选）
-
-项目仍支持 OpenAI 作为备用提供商：
-
-1. 新增 Repository secret：`OPENAI_API_KEY`。
-2. 新增 Repository variable：`AI_PROVIDER`，值设为 `openai`。
-3. 新增 Repository variable：`AI_MODEL`，例如填写支持 Structured Outputs 的模型名称。
-
-NVIDIA 模式使用其官方兼容的 Chat Completions endpoint，并在脚本中校验返回 JSON；OpenAI 模式使用 Structured Outputs 进行严格结构约束。
+分类适合保持稳定，标签可随着资料内容增加新的检索关键词。需要跨设备保留的资料应整理后写入公开目录；私人草稿可定期使用“导出备份”保存。
 
 ## 我会如何整理网址
 
@@ -74,7 +45,7 @@ NVIDIA 模式使用其官方兼容的 Chat Completions endpoint，并在脚本�
 - `data/library.json` 会随 GitHub Pages 对外可见，只允许收录公开资料和公开说明。
 - 本地导出的 `html-navi-backup-YYYY-MM-DD.json` 可能包含你的私人记录，应放在受保护的位置，不要提交到公开仓库。
 - GitHub Pages 网站本身是公开可访问的，即使某些 GitHub 方案允许从私有仓库发布页面。
-- 静态网页不会直接向 AI API 或 GitHub 写入内容，因为把写入 Token 或 API Key 放在浏览器端会导致泄露；智能整理只在 GitHub Actions 中使用 Secret 运行。
+- 静态网页不会持有或要求填写 API Key、Token 或其他访问凭据。
 
 ## 本地浏览
 

@@ -3,6 +3,31 @@
 
   const STORAGE_KEY = "html-navi.items.v1";
   const VIEW_STORAGE_KEY = "html-navi.view.v1";
+  const PRESET_CATEGORIES = [
+    "技术与工具",
+    "学习与研究",
+    "产品与设计",
+    "写作与创作",
+    "商业与趋势",
+    "效率与方法",
+    "生活与兴趣",
+    "影音娱乐",
+    "待整理"
+  ];
+  const PRESET_TAGS = [
+    "开源项目",
+    "教程",
+    "工具",
+    "灵感",
+    "AI",
+    "前端",
+    "设计",
+    "写作",
+    "效率",
+    "稍后阅读",
+    "重点回看",
+    "可复用"
+  ];
   const STATUS_LABELS = {
     inbox: "待整理",
     reading: "阅读中",
@@ -17,8 +42,11 @@
     url: document.querySelector("#urlInput"),
     summary: document.querySelector("#summaryInput"),
     category: document.querySelector("#categoryInput"),
+    categorySuggestions: document.querySelector("#categorySuggestions"),
+    categoryPresets: document.querySelector("#categoryPresets"),
     source: document.querySelector("#sourceInput"),
     tags: document.querySelector("#tagsInput"),
+    tagPresets: document.querySelector("#tagPresets"),
     status: document.querySelector("#statusInput"),
     reviewDate: document.querySelector("#reviewDateInput"),
     favorite: document.querySelector("#favoriteInput"),
@@ -106,6 +134,44 @@
 
   function parseTags(value) {
     return [...new Set(String(value).split(/[,，]/).map((tag) => tag.trim()).filter(Boolean))].slice(0, 12);
+  }
+
+  function createPresetButton(label, onClick) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "preset-chip";
+    button.textContent = label;
+    button.dataset.value = label;
+    button.addEventListener("click", () => onClick(label));
+    return button;
+  }
+
+  function renderPresets() {
+    elements.categorySuggestions.replaceChildren(...PRESET_CATEGORIES.map((category) => new Option(category)));
+    elements.categoryPresets.replaceChildren(...PRESET_CATEGORIES.map((category) => createPresetButton(category, (value) => {
+      elements.category.value = value;
+      syncPresetSelection();
+    })));
+    elements.tagPresets.replaceChildren(...PRESET_TAGS.map((tag) => createPresetButton(tag, (value) => {
+      const tags = parseTags(elements.tags.value);
+      const nextTags = tags.includes(value)
+        ? tags.filter((entry) => entry !== value)
+        : [...tags, value];
+      elements.tags.value = nextTags.join(", ");
+      syncPresetSelection();
+    })));
+    syncPresetSelection();
+  }
+
+  function syncPresetSelection() {
+    const category = elements.category.value.trim();
+    const tags = parseTags(elements.tags.value);
+    elements.categoryPresets.querySelectorAll(".preset-chip").forEach((button) => {
+      button.classList.toggle("active", button.dataset.value === category);
+    });
+    elements.tagPresets.querySelectorAll(".preset-chip").forEach((button) => {
+      button.classList.toggle("active", tags.includes(button.dataset.value));
+    });
   }
 
   function persist() {
@@ -291,10 +357,11 @@
   function resetForm() {
     elements.form.reset();
     elements.itemId.value = "";
-    elements.formTitle.textContent = "本机临时记录";
+    elements.formTitle.textContent = "手动记录资料";
     elements.saveButton.textContent = "保存资料";
     elements.cancelEditButton.classList.add("hidden");
     elements.status.value = "inbox";
+    syncPresetSelection();
   }
 
   function editItem(id) {
@@ -315,6 +382,7 @@
     elements.formTitle.textContent = "编辑资料";
     elements.saveButton.textContent = "更新资料";
     elements.cancelEditButton.classList.remove("hidden");
+    syncPresetSelection();
     elements.title.focus();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -371,7 +439,7 @@
     persist();
     resetForm();
     render();
-    showToast(original ? "本机草稿已更新" : "仅保存到当前浏览器；长期收纳请提交公开网址");
+    showToast(original ? "资料已更新" : "资料已保存到当前浏览器");
   }
 
   function exportItems() {
@@ -447,6 +515,8 @@
   elements.cancelEditButton.addEventListener("click", resetForm);
   elements.exportButton.addEventListener("click", exportItems);
   elements.importInput.addEventListener("change", importItems);
+  elements.category.addEventListener("input", syncPresetSelection);
+  elements.tags.addEventListener("input", syncPresetSelection);
   [elements.search, elements.categoryFilter, elements.statusFilter, elements.sort].forEach((element) => {
     element.addEventListener("input", () => {
       currentPage = 1;
@@ -474,6 +544,7 @@
   });
 
   loadViewSettings();
+  renderPresets();
   resetForm();
   render();
   loadRepositoryItems();

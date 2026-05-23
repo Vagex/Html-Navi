@@ -27,25 +27,16 @@
       <section class="hero container">
         <p class="eyebrow">Personal Reading Library</p>
         <h1>把遇到的好内容，<br>留给未来需要它的自己。</h1>
-        <p class="hero-copy">把公开网址交给我收纳、说明和归类。正式资料写入 GitHub 目录后，会在任意设备的站点中持续可见；浏览器草稿只适合临时记录。</p>
+        <p class="hero-copy">按自己的检索习惯记录网址、摘要、分类与标签。公开目录随 GitHub 站点长期保留；浏览器草稿适合随手整理与导出备份。</p>
       </section>
     </header>
 
     <main class="container layout">
       <aside class="capture panel" aria-label="新增资料">
-        <section class="repository-intake" aria-label="永久收纳说明">
-          <p class="eyebrow">AI Organizer</p>
-          <h2>通过 GitHub 智能收纳</h2>
-          <p>提交一个收纳请求后，GitHub Actions 会自动生成摘要、分类与标签，并创建待审核的入库改动。</p>
-          <a class="button button-primary full" href="https://github.com/Vagex/Html-Navi/issues/new?template=submit-link.yml" target="_blank" rel="noopener noreferrer">创建收纳请求（Issue）</a>
-          <p class="automation-hint">当前安全模式会创建 GitHub Issue 作为触发凭证。NVIDIA 密钥仅存于 Actions Secret，不会暴露在网页中。</p>
-          <p class="repository-path">主资料源：<code>data/library.json</code></p>
-        </section>
-        <div class="capture-divider"><span>仅作临时草稿</span></div>
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Browser Draft</p>
-            <h2 id="formTitle">本机临时记录</h2>
+            <p class="eyebrow">Manual Capture</p>
+            <h2 id="formTitle">手动记录资料</h2>
           </div>
           <button id="cancelEditButton" class="text-button hidden" type="button">取消编辑</button>
         </div>
@@ -66,17 +57,26 @@
           <div class="two-fields">
             <label>
               分类
-              <input id="categoryInput" name="category" type="text" maxlength="32" placeholder="技术 / 设计 / 生活">
+              <input id="categoryInput" name="category" type="text" maxlength="32" list="categorySuggestions" placeholder="选择预设或自行输入">
+              <datalist id="categorySuggestions"></datalist>
             </label>
             <label>
               来源
               <input id="sourceInput" name="source" type="text" maxlength="50" placeholder="博客 / 视频 / 朋友推荐">
             </label>
           </div>
+          <div class="preset-section">
+            <span class="preset-label">推荐分类</span>
+            <div id="categoryPresets" class="preset-list" aria-label="推荐分类"></div>
+          </div>
           <label>
             标签
-            <input id="tagsInput" name="tags" type="text" maxlength="120" placeholder="AI, 写作, 可复用（逗号分隔）">
+            <input id="tagsInput" name="tags" type="text" maxlength="120" placeholder="选择常用标签或自行输入（逗号分隔）">
           </label>
+          <div class="preset-section">
+            <span class="preset-label">常用标签</span>
+            <div id="tagPresets" class="preset-list" aria-label="常用标签"></div>
+          </div>
           <div class="two-fields">
             <label>
               阅读状态
@@ -98,7 +98,7 @@
           </label>
           <button id="saveButton" class="button button-primary full" type="submit">保存资料</button>
         </form>
-        <p class="privacy-note"><strong>不会跨浏览器同步：</strong>此表单内容只存在当前浏览器，清理数据后会丢失。需要长期保存的公开网址请交给我收纳，且不要提交密码、Token、私钥或私有链接。</p>
+        <p class="privacy-note"><strong>保存说明：</strong>表单新增内容保存在当前浏览器，可导出备份。需要发布到跨设备可见的公开目录时，可让我将整理内容写入仓库；请勿记录密码、Token、私钥或私有链接。</p>
       </aside>
 
       <section class="library">
