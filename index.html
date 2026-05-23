@@ -54,17 +54,11 @@
             为什么值得保存
             <textarea id="summaryInput" name="summary" rows="3" maxlength="500" placeholder="一两句话记下它解决什么问题、适合何时再看"></textarea>
           </label>
-          <div class="two-fields">
-            <label>
-              分类
-              <input id="categoryInput" name="category" type="text" maxlength="32" list="categorySuggestions" placeholder="选择预设或自行输入">
-              <datalist id="categorySuggestions"></datalist>
-            </label>
-            <label>
-              来源
-              <input id="sourceInput" name="source" type="text" maxlength="50" placeholder="博客 / 视频 / 朋友推荐">
-            </label>
-          </div>
+          <label>
+            分类
+            <input id="categoryInput" name="category" type="text" maxlength="32" list="categorySuggestions" placeholder="选择预设或自行输入">
+            <datalist id="categorySuggestions"></datalist>
+          </label>
           <div class="preset-section">
             <span class="preset-label">推荐分类</span>
             <div id="categoryPresets" class="preset-list" aria-label="推荐分类"></div>
@@ -114,7 +108,7 @@
         <section class="panel controls" aria-label="搜索与筛选">
           <label class="search">
             <span class="visually-hidden">搜索资料</span>
-            <input id="searchInput" type="search" placeholder="搜索标题、摘要、标签或来源">
+            <input id="searchInput" type="search" placeholder="搜索标题、摘要或标签">
           </label>
           <select id="categoryFilter" aria-label="按分类筛选">
             <option value="">全部分类</option>

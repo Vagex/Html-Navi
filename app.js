@@ -44,7 +44,6 @@
     category: document.querySelector("#categoryInput"),
     categorySuggestions: document.querySelector("#categorySuggestions"),
     categoryPresets: document.querySelector("#categoryPresets"),
-    source: document.querySelector("#sourceInput"),
     tags: document.querySelector("#tagsInput"),
     tagPresets: document.querySelector("#tagPresets"),
     status: document.querySelector("#statusInput"),
@@ -185,7 +184,7 @@
   }
 
   function escapeForSearch(item) {
-    return [item.title, item.summary, item.category, item.source, ...item.tags].join(" ").toLowerCase();
+    return [item.title, item.summary, item.category, domainName(item.url), ...item.tags].join(" ").toLowerCase();
   }
 
   function filteredItems() {
@@ -223,6 +222,14 @@
       return "";
     }
     return new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric" }).format(new Date(value));
+  }
+
+  function domainName(value) {
+    try {
+      return new URL(value).hostname.replace(/^www\./, "");
+    } catch (error) {
+      return "";
+    }
   }
 
   function renderStats() {
@@ -333,7 +340,7 @@
       });
 
       const details = fragment.querySelector(".details");
-      addDetail(details, "来源", item.source);
+      addDetail(details, "站点", domainName(item.url) || item.source);
       addDetail(details, "收藏时间", `收藏 ${formatDate(item.createdAt)}`);
       addDetail(details, "回看时间", item.reviewDate ? `回看 ${formatDate(`${item.reviewDate}T00:00:00`)}` : "");
 
@@ -374,7 +381,6 @@
     elements.url.value = item.url;
     elements.summary.value = item.summary;
     elements.category.value = item.category;
-    elements.source.value = item.source;
     elements.tags.value = item.tags.join(", ");
     elements.status.value = item.status;
     elements.reviewDate.value = item.reviewDate;
@@ -424,7 +430,7 @@
       url: elements.url.value,
       summary: elements.summary.value,
       category: elements.category.value,
-      source: elements.source.value,
+      source: original ? original.source : "",
       tags: parseTags(elements.tags.value),
       status: elements.status.value,
       reviewDate: elements.reviewDate.value,
