@@ -4,6 +4,13 @@ on:
   issues:
     types:
       - opened
+      - reopened
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Existing intake issue number to organize
+        required: true
+        type: number
 
 permissions:
   contents: write
@@ -12,7 +19,7 @@ permissions:
 
 jobs:
   organize:
-    if: github.event.issue.user.login == github.repository_owner && startsWith(github.event.issue.title, '[收纳]')
+    if: github.event_name == 'workflow_dispatch' || (github.event.issue.user.login == github.repository_owner && contains(github.event.issue.body, '### 网址'))
     runs-on: ubuntu-latest
     env:
       AI_PROVIDER: ${{ vars.AI_PROVIDER || 'nvidia' }}
@@ -20,9 +27,29 @@ jobs:
       NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ISSUE_BODY: ${{ github.event.issue.body }}
+      ISSUE_NUMBER: ${{ inputs.issue_number || github.event.issue.number }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Load requested issue for manual runs
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+        shell: bash
+        run: |
+          author="$(gh issue view "$ISSUE_NUMBER" --repo "$REPOSITORY" --json author --jq '.author.login')"
+          if [ "$author" != "$OWNER" ]; then
+            echo "Only repository-owner submissions may use AI organizing." >&2
+            exit 1
+          fi
+          {
+            echo 'ISSUE_BODY<<HTML_NAVI_ISSUE'
+            gh issue view "$ISSUE_NUMBER" --repo "$REPOSITORY" --json body --jq '.body'
+            echo 'HTML_NAVI_ISSUE'
+          } >> "$GITHUB_ENV"
 
       - name: Generate categorized library record
         run: node scripts/organize-link.mjs
@@ -31,7 +58,6 @@ jobs:
         id: pull_request
         env:
           GH_TOKEN: ${{ github.token }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           REPOSITORY: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
