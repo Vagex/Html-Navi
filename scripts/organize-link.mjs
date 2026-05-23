@@ -180,9 +180,10 @@ function organizerMessages({ url: submitted, note: submittedNote, page: fetchedP
 }
 
 async function classifyWithModel(input) {
-  const suggested = provider === "nvidia"
+  const response = provider === "nvidia"
     ? await classifyWithNvidia(input)
     : await classifyWithOpenAI(input);
+  const suggested = normalizeSuggestion(response);
   validateSuggestion(suggested);
   return suggested;
 }
@@ -292,6 +293,27 @@ function parseJsonResult(outputText) {
   return JSON.parse(cleaned);
 }
 
+function normalizeSuggestion(suggested) {
+  if (!suggested || typeof suggested !== "object" || Array.isArray(suggested)) {
+    return suggested;
+  }
+  const normalizedCategory = CATEGORIES.includes(suggested.category) ? suggested.category : "待判断";
+  const rawTags = Array.isArray(suggested.tags)
+    ? suggested.tags
+    : String(suggested.tags || "").split(/[,，、#\n]/);
+  const tags = [...new Set(rawTags.map((tag) => String(tag).trim()).filter(Boolean))];
+  [normalizedCategory, String(suggested.source || "").trim(), "公开资料"].forEach((tag) => {
+    if (tag && tags.length < 2 && !tags.includes(tag)) {
+      tags.push(tag);
+    }
+  });
+  return {
+    ...suggested,
+    category: normalizedCategory,
+    tags: tags.slice(0, 5)
+  };
+}
+
 function validateSuggestion(suggested) {
   if (!suggested || typeof suggested !== "object" || Array.isArray(suggested)) {
     throw new Error("AI result is not a metadata object.");
@@ -300,9 +322,6 @@ function validateSuggestion(suggested) {
     if (typeof suggested[field] !== "string" || !suggested[field].trim()) {
       throw new Error(`AI result is missing required field: ${field}.`);
     }
-  }
-  if (!CATEGORIES.includes(suggested.category)) {
-    throw new Error("AI result category is not allowed.");
   }
   if (!Array.isArray(suggested.tags) || suggested.tags.length < 2 || suggested.tags.length > 5) {
     throw new Error("AI result tags must contain between 2 and 5 entries.");
