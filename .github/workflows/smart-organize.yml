@@ -1,0 +1,52 @@
+name: Smart organize submitted link
+
+on:
+  issues:
+    types:
+      - opened
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  organize:
+    if: github.event.issue.user.login == github.repository_owner && startsWith(github.event.issue.title, '[收纳]')
+    runs-on: ubuntu-latest
+    env:
+      AI_PROVIDER: ${{ vars.AI_PROVIDER || 'nvidia' }}
+      AI_MODEL: ${{ vars.AI_MODEL }}
+      NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ISSUE_BODY: ${{ github.event.issue.body }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Generate categorized library record
+        run: node scripts/organize-link.mjs
+
+      - name: Create review pull request
+        id: pull_request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          if git diff --quiet -- data/library.json; then
+            gh issue comment "$ISSUE_NUMBER" --body "该网址已存在于目录中，未产生新的资料变更。"
+            exit 0
+          fi
+          branch="ai/intake-${ISSUE_NUMBER}-${RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add data/library.json
+          git commit -m "Add organized link from issue #${ISSUE_NUMBER}"
+          git push --set-upstream origin "$branch"
+          pr_url="$(gh pr create --base "$DEFAULT_BRANCH" --head "$branch" --title "收纳：整理 issue #${ISSUE_NUMBER} 的网址" --body "由智能整理工作流生成，合并前请核对摘要、分类与标签。 closes #${ISSUE_NUMBER}")"
+          gh issue comment "$ISSUE_NUMBER" --body "已生成整理结果，请审核后合并：${pr_url}"

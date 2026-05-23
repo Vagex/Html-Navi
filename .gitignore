@@ -1,0 +1,22 @@
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+secrets*.json
+
+# Private personal exports from Html Navi
+backups/
+exports/
+html-navi-backup-*.json
+.preview/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f3efe5">
+    <title>Html Navi - 资料收藏与回看</title>
+    <meta name="description" content="本地优先的个人资料收藏、分类与回看工具。">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <header class="masthead">
+      <nav class="nav container" aria-label="页面导航">
+        <a class="brand" href="./" aria-label="Html Navi 首页">
+          <span class="brand-mark">HN</span>
+          <span>Html Navi</span>
+        </a>
+        <div class="nav-actions">
+          <button id="exportButton" class="button button-secondary" type="button">导出备份</button>
+          <label class="button button-secondary file-button">
+            导入
+            <input id="importInput" type="file" accept="application/json,.json">
+          </label>
+        </div>
+      </nav>
+      <section class="hero container">
+        <p class="eyebrow">Personal Reading Library</p>
+        <h1>把遇到的好内容，<br>留给未来需要它的自己。</h1>
+        <p class="hero-copy">把公开网址交给我收纳、说明和归类。正式资料写入 GitHub 目录后，会在任意设备的站点中持续可见；浏览器草稿只适合临时记录。</p>
+      </section>
+    </header>
+
+    <main class="container layout">
+      <aside class="capture panel" aria-label="新增资料">
+        <section class="repository-intake" aria-label="永久收纳说明">
+          <p class="eyebrow">AI Organizer</p>
+          <h2>智能整理到 GitHub</h2>
+          <p>配置一次 NVIDIA NIM API Secret 后，提交公开网址即可自动生成摘要、分类与标签，并创建待审核的入库请求。</p>
+          <a class="button button-primary full" href="https://github.com/Vagex/Html-Navi/issues/new?template=submit-link.yml" target="_blank" rel="noopener noreferrer">提交网址，智能整理</a>
+          <p class="automation-hint">支持 NVIDIA 免费原型推理额度；密钥只配置在 GitHub Actions Secret，不会写入页面或资料目录。</p>
+          <p class="repository-path">主资料源：<code>data/library.json</code></p>
+        </section>
+        <div class="capture-divider"><span>仅作临时草稿</span></div>
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Browser Draft</p>
+            <h2 id="formTitle">本机临时记录</h2>
+          </div>
+          <button id="cancelEditButton" class="text-button hidden" type="button">取消编辑</button>
+        </div>
+        <form id="itemForm">
+          <input id="itemId" type="hidden">
+          <label>
+            标题 <span class="required">*</span>
+            <input id="titleInput" name="title" type="text" maxlength="120" placeholder="例如：如何构建个人知识系统" required>
+          </label>
+          <label>
+            链接 <span class="required">*</span>
+            <input id="urlInput" name="url" type="url" maxlength="1000" placeholder="https://..." required>
+          </label>
+          <label>
+            为什么值得保存
+            <textarea id="summaryInput" name="summary" rows="3" maxlength="500" placeholder="一两句话记下它解决什么问题、适合何时再看"></textarea>
+          </label>
+          <div class="two-fields">
+            <label>
+              分类
+              <input id="categoryInput" name="category" type="text" maxlength="32" placeholder="技术 / 设计 / 生活">
+            </label>
+            <label>
+              来源
+              <input id="sourceInput" name="source" type="text" maxlength="50" placeholder="博客 / 视频 / 朋友推荐">
+            </label>
+          </div>
+          <label>
+            标签
+            <input id="tagsInput" name="tags" type="text" maxlength="120" placeholder="AI, 写作, 可复用（逗号分隔）">
+          </label>
+          <div class="two-fields">
+            <label>
+              阅读状态
+              <select id="statusInput" name="status">
+                <option value="inbox">待整理</option>
+                <option value="reading">阅读中</option>
+                <option value="reviewed">已阅览</option>
+                <option value="archived">已归档</option>
+              </select>
+            </label>
+            <label>
+              回看日期
+              <input id="reviewDateInput" name="reviewDate" type="date">
+            </label>
+          </div>
+          <label class="check-field">
+            <input id="favoriteInput" name="favorite" type="checkbox">
+            标记为重点资料
+          </label>
+          <button id="saveButton" class="button button-primary full" type="submit">保存资料</button>
+        </form>
+        <p class="privacy-note"><strong>不会跨浏览器同步：</strong>此表单内容只存在当前浏览器，清理数据后会丢失。需要长期保存的公开网址请交给我收纳，且不要提交密码、Token、私钥或私有链接。</p>
+      </aside>
+
+      <section class="library">
+        <section class="catalog-note" aria-label="数据保存方式">
+          <div>
+            <strong>公开目录跨设备保留</strong>
+            <p>带“公开收纳”标记的资料来自 GitHub 仓库；“本地暂存”只存在当前浏览器。</p>
+          </div>
+          <span class="catalog-badge">GitHub-backed</span>
+        </section>
+        <section id="stats" class="stats" aria-label="资料统计"></section>
+
+        <section class="panel controls" aria-label="搜索与筛选">
+          <label class="search">
+            <span class="visually-hidden">搜索资料</span>
+            <input id="searchInput" type="search" placeholder="搜索标题、摘要、标签或来源">
+          </label>
+          <select id="categoryFilter" aria-label="按分类筛选">
+            <option value="">全部分类</option>
+          </select>
+          <select id="statusFilter" aria-label="按阅读状态筛选">
+            <option value="">全部状态</option>
+            <option value="inbox">待整理</option>
+            <option value="reading">阅读中</option>
+            <option value="reviewed">已阅览</option>
+            <option value="archived">已归档</option>
+          </select>
+          <select id="sortSelect" aria-label="排序">
+            <option value="newest">最近添加</option>
+            <option value="review">即将回看</option>
+            <option value="favorite">重点优先</option>
+            <option value="oldest">最早添加</option>
+          </select>
+        </section>
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Library</p>
+            <h2>收纳目录</h2>
+          </div>
+          <div class="library-options">
+            <label class="view-option">
+              列数
+              <select id="columnSelect" aria-label="每行显示列数">
+                <option value="2">2 列</option>
+                <option value="3" selected>3 列</option>
+                <option value="4">4 列</option>
+                <option value="5">5 列</option>
+              </select>
+            </label>
+            <label class="view-option">
+              每页
+              <select id="pageSizeSelect" aria-label="每页显示数量">
+                <option value="12" selected>12 条</option>
+                <option value="24">24 条</option>
+                <option value="48">48 条</option>
+              </select>
+            </label>
+            <p id="resultCount" class="result-count"></p>
+          </div>
+        </div>
+        <section id="emptyState" class="panel empty-state hidden">
+          <h3>还没有资料</h3>
+          <p>从左侧记录第一个链接，并写下一句它值得留下的原因。</p>
+        </section>
+        <section id="itemList" class="item-list" aria-live="polite"></section>
+        <nav id="pagination" class="pagination hidden" aria-label="目录分页">
+          <button id="previousPage" class="page-button" type="button">上一页</button>
+          <p id="pageStatus" class="page-status"></p>
+          <button id="nextPage" class="page-button" type="button">下一页</button>
+        </nav>
+      </section>
+    </main>
+
+    <template id="itemTemplate">
+      <article class="item-card" tabindex="0">
+        <div class="compact-card">
+          <span class="compact-category"></span>
+          <a class="item-title" target="_blank" rel="noopener noreferrer"></a>
+          <button class="favorite-button" type="button" aria-label="切换重点标记"></button>
+        </div>
+        <section class="card-preview">
+          <div class="meta"></div>
+          <p class="summary"></p>
+          <div class="item-footer">
+            <div class="tag-list"></div>
+            <dl class="details"></dl>
+            <div class="item-actions">
+              <button class="text-button edit-button" type="button">编辑</button>
+              <button class="text-button delete-button danger" type="button">删除</button>
+            </div>
+          </div>
+        </section>
+      </article>
+    </template>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
