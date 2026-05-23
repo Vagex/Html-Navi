@@ -42,7 +42,6 @@
     url: document.querySelector("#urlInput"),
     summary: document.querySelector("#summaryInput"),
     category: document.querySelector("#categoryInput"),
-    categorySuggestions: document.querySelector("#categorySuggestions"),
     categoryPresets: document.querySelector("#categoryPresets"),
     tags: document.querySelector("#tagsInput"),
     tagPresets: document.querySelector("#tagPresets"),
@@ -146,7 +145,6 @@
   }
 
   function renderPresets() {
-    elements.categorySuggestions.replaceChildren(...PRESET_CATEGORIES.map((category) => new Option(category)));
     elements.categoryPresets.replaceChildren(...PRESET_CATEGORIES.map((category) => createPresetButton(category, (value) => {
       elements.category.value = value;
       syncPresetSelection();
