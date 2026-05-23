@@ -35,10 +35,10 @@
       <aside class="capture panel" aria-label="新增资料">
         <section class="repository-intake" aria-label="永久收纳说明">
           <p class="eyebrow">AI Organizer</p>
-          <h2>智能整理到 GitHub</h2>
-          <p>配置一次 NVIDIA NIM API Secret 后，提交公开网址即可自动生成摘要、分类与标签，并创建待审核的入库请求。</p>
-          <a class="button button-primary full" href="https://github.com/Vagex/Html-Navi/issues/new?template=submit-link.yml" target="_blank" rel="noopener noreferrer">提交网址，智能整理</a>
-          <p class="automation-hint">支持 NVIDIA 免费原型推理额度；密钥只配置在 GitHub Actions Secret，不会写入页面或资料目录。</p>
+          <h2>通过 GitHub 智能收纳</h2>
+          <p>提交一个收纳请求后，GitHub Actions 会自动生成摘要、分类与标签，并创建待审核的入库改动。</p>
+          <a class="button button-primary full" href="https://github.com/Vagex/Html-Navi/issues/new?template=submit-link.yml" target="_blank" rel="noopener noreferrer">创建收纳请求（Issue）</a>
+          <p class="automation-hint">当前安全模式会创建 GitHub Issue 作为触发凭证。NVIDIA 密钥仅存于 Actions Secret，不会暴露在网页中。</p>
           <p class="repository-path">主资料源：<code>data/library.json</code></p>
         </section>
         <div class="capture-divider"><span>仅作临时草稿</span></div>
